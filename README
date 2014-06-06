@@ -1,5 +1,5 @@
-Mstd is a C++ header-only library that provides more std::-like
-containers, such as vector_set.
+Mstd is a C++ header-only library that provides things that
+could've been in std::, but are not.
 
 Mstd is made by Maurice Bos <m-ou.se@m-ou.se>.
 
