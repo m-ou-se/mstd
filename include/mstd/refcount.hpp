@@ -187,6 +187,16 @@ private:
 	static T * unwrap(refcount_wrapper<T> * x) noexcept { return x->wrapped; }
 };
 
+template<typename A, typename B>
+bool operator==(refcount_ptr<A> const & a, refcount_ptr<B> const & b) {
+	return a.get() == b.get();
+}
+
+template<typename A, typename B>
+bool operator!=(refcount_ptr<A> const & a, refcount_ptr<B> const & b) {
+	return a.get() != b.get();
+}
+
 template<typename T, typename... Args>
 refcount_ptr<T> make_refcount(Args &&... args) {
 	return new typename refcount_ptr<T>::refcounted_type(std::forward<Args>(args)...);
