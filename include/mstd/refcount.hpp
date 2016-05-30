@@ -197,22 +197,22 @@ bool operator!=(refcount_ptr<A> const & a, refcount_ptr<B> const & b) {
 
 template<typename T>
 bool operator==(std::nullptr_t, refcount_ptr<T> const & p) {
-	return p;
+	return !bool(p);
 }
 
 template<typename T>
 bool operator==(refcount_ptr<T> const & p, std::nullptr_t) {
-	return p;
+	return !bool(p);
 }
 
 template<typename T>
 bool operator!=(std::nullptr_t, refcount_ptr<T> const & p) {
-	return !p;
+	return bool(p);
 }
 
 template<typename T>
 bool operator!=(refcount_ptr<T> const & p, std::nullptr_t) {
-	return !p;
+	return bool(p);
 }
 
 template<typename T, typename... Args>
