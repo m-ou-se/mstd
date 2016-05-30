@@ -182,7 +182,7 @@ private:
 	}
 
 	static T * unwrap(T * x) noexcept { return x; }
-	static T * unwrap(refcount_wrapper<T> * x) noexcept { return x->wrapped; }
+	static T * unwrap(refcount_wrapper<T> * x) noexcept { return &x->wrapped; }
 };
 
 template<typename A, typename B>
