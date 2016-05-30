@@ -61,9 +61,9 @@ private:
 	friend refcount_ptr<T2> make_refcount(Args &&...);
 
 public:
-	refcount_ptr(std::nullptr_t) : object(nullptr) {}
+	refcount_ptr(std::nullptr_t = nullptr) noexcept : object(nullptr) {}
 
-	refcount_ptr(refcounted_type * object = nullptr) noexcept : object(object) {
+	refcount_ptr(refcounted_type * object) noexcept : object(object) {
 		increment_refcount();
 	}
 
