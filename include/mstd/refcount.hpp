@@ -197,6 +197,26 @@ bool operator!=(refcount_ptr<A> const & a, refcount_ptr<B> const & b) {
 	return a.get() != b.get();
 }
 
+template<typename T>
+bool operator==(std::nullptr_t, refcount_ptr<T> const & p) {
+	return p;
+}
+
+template<typename T>
+bool operator==(refcount_ptr<T> const & p, std::nullptr_t) {
+	return p;
+}
+
+template<typename T>
+bool operator!=(std::nullptr_t, refcount_ptr<T> const & p) {
+	return !p;
+}
+
+template<typename T>
+bool operator!=(refcount_ptr<T> const & p, std::nullptr_t) {
+	return !p;
+}
+
 template<typename T, typename... Args>
 refcount_ptr<T> make_refcount(Args &&... args) {
 	return new typename refcount_ptr<T>::refcounted_type(std::forward<Args>(args)...);
