@@ -138,11 +138,9 @@ public:
 		>::value>::type
 	>
 	refcount_ptr & operator=(refcount_ptr<T2> && other) noexcept {
-		if (&other != this) {
-			decrement_refcount();
-			object = other.object;
-			other.object = nullptr;
-		}
+		decrement_refcount();
+		object = other.object;
+		other.object = nullptr;
 		return *this;
 	}
 
