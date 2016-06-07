@@ -18,7 +18,24 @@ public:
 	refcounted & operator=(refcounted const &) noexcept { return *this; }
 	refcounted & operator=(refcounted &&) noexcept { return *this; }
 
-	template<typename> friend class refcount_ptr;
+	friend std::size_t use_count(refcounted const * object) noexcept {
+		return object->references;
+	}
+
+	friend std::size_t unique(refcounted const * object) noexcept {
+		return object->references == 1;
+	}
+
+	friend std::size_t increment_refcount(refcounted const * object) noexcept {
+		return ++object->references;
+	}
+
+	template<typename T>
+	friend std::size_t decrement_refcount(T const * object) noexcept {
+		auto n_refs = --static_cast<refcounted const *>(object)->references;
+		if (!n_refs) delete object;
+		return n_refs;
+	}
 };
 
 template<typename T> class refcount_ptr;
@@ -64,11 +81,11 @@ public:
 	refcount_ptr(std::nullptr_t = nullptr) noexcept : object(nullptr) {}
 
 	refcount_ptr(refcounted_type * object) noexcept : object(object) {
-		increment_refcount();
+		if (object) increment_refcount(object);
 	}
 
 	refcount_ptr(refcount_ptr const & other) noexcept : object(other.object) {
-		increment_refcount();
+		if (object) increment_refcount(object);
 	}
 
 	refcount_ptr(refcount_ptr && other) noexcept : object(other.object) {
@@ -83,7 +100,7 @@ public:
 		>::value>::type
 	>
 	refcount_ptr(refcount_ptr<T2> const & other) noexcept : object(other.object) {
-		increment_refcount();
+		if (object) increment_refcount(object);
 	}
 
 	template<
@@ -99,9 +116,9 @@ public:
 
 	refcount_ptr & operator=(refcounted_type * other) noexcept {
 		if (other != object) {
-			decrement_refcount();
+			if (object) decrement_refcount(object);
 			object = other;
-			increment_refcount();
+			if (object) increment_refcount(object);
 		}
 		return *this;
 	}
@@ -112,7 +129,7 @@ public:
 
 	refcount_ptr & operator=(refcount_ptr && other) noexcept {
 		if (&other != this) {
-			decrement_refcount();
+			if (object) decrement_refcount(object);
 			object = other.object;
 			other.object = nullptr;
 		}
@@ -138,14 +155,14 @@ public:
 		>::value>::type
 	>
 	refcount_ptr & operator=(refcount_ptr<T2> && other) noexcept {
-		decrement_refcount();
+		if (object) decrement_refcount(object);
 		object = other.object;
 		other.object = nullptr;
 		return *this;
 	}
 
 	~refcount_ptr() noexcept {
-		decrement_refcount();
+		if (object) decrement_refcount(object);
 	}
 
 	T * get() const noexcept {
@@ -165,22 +182,16 @@ public:
 	}
 
 	std::size_t use_count() const noexcept {
-		return object ? static_cast<refcounted const *>(object)->references.load() : 0;
+		return object ? use_count(object) : 0;
 	}
 
 	bool unique() const noexcept {
 		return use_count() == 1;
 	}
 
+
+
 private:
-	void increment_refcount() noexcept {
-		if (object) ++static_cast<refcounted const *>(object)->references;
-	}
-
-	void decrement_refcount() noexcept {
-		if (object && !--static_cast<refcounted const *>(object)->references) delete object;
-	}
-
 	static T * unwrap(T * x) noexcept { return x; }
 	static T * unwrap(refcount_wrapper<T> * x) noexcept { return &x->wrapped; }
 };
