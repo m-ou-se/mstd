@@ -189,12 +189,51 @@ public:
 		return use_count() == 1;
 	}
 
+	template<typename T2, typename T1>
+	friend refcount_ptr<T2> static_pointer_cast(refcount_ptr<T1> p);
 
+	template<typename T2, typename T1>
+	friend refcount_ptr<T2> dynamic_pointer_cast(refcount_ptr<T1> const & p);
+
+	template<typename T2, typename T1>
+	friend refcount_ptr<T2> dynamic_pointer_cast(refcount_ptr<T1> && p);
+
+	template<typename T2, typename T1>
+	friend refcount_ptr<T2> const_pointer_cast(refcount_ptr<T1> p);
 
 private:
 	static T * unwrap(T * x) noexcept { return x; }
 	static T * unwrap(refcount_wrapper<T> * x) noexcept { return &x->wrapped; }
 };
+
+template<typename T2, typename T>
+refcount_ptr<T2> static_pointer_cast(refcount_ptr<T> p) {
+	refcount_ptr<T2> p2;
+	p2.object = static_cast<typename refcount_ptr<T2>::refcounted_type *>(p.object);
+	p.object = nullptr;
+	return std::move(p2);
+}
+
+template<typename T2, typename T>
+refcount_ptr<T2> dynamic_pointer_cast(refcount_ptr<T> const & p) {
+	return refcount_ptr<T2>(dynamic_cast<typename refcount_ptr<T2>::refcounted_type *>(p.object));
+}
+
+template<typename T2, typename T>
+refcount_ptr<T2> dynamic_pointer_cast(refcount_ptr<T> && p) {
+	refcount_ptr<T2> p2;
+	p2.object = dynamic_cast<typename refcount_ptr<T2>::refcounted_type *>(p.object);
+	if (p2.object) p.object = nullptr;
+	return std::move(p2);
+}
+
+template<typename T2, typename T>
+refcount_ptr<T2> const_pointer_cast(refcount_ptr<T> p) {
+	refcount_ptr<T2> p2;
+	p2.object = const_cast<typename refcount_ptr<T2>::refcounted_type *>(p.object);
+	p.object = nullptr;
+	return std::move(p2);
+}
 
 template<typename A, typename B>
 bool operator==(refcount_ptr<A> const & a, refcount_ptr<B> const & b) {
