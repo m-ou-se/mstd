@@ -170,7 +170,7 @@ public:
 	}
 
 	explicit operator bool () const noexcept {
-		return object;
+		return object != nullptr;
 	}
 
 	T & operator*() const noexcept {
