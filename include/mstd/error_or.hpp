@@ -1,8 +1,9 @@
 #pragma once
 
 #include <new>
-#include <utility>
+#include <stdexcept>
 #include <system_error>
+#include <utility>
 
 namespace mstd {
 
