@@ -51,4 +51,18 @@ private:
 	std::size_t size_;
 };
 
+template<typename T1, typename T2>
+constexpr bool operator == (range<T1> a, range<T2> b) {
+	if (a.size() != b.size()) return false;
+	for (size_t i = 0; i < a.size; ++i) if (!(a[i] == b[i])) return false;
+	return true;
+}
+
+template<typename T1, typename T2>
+constexpr bool operator != (range<T1> a, range<T2> b) {
+	if (a.size() != b.size()) return true;
+	for (size_t i = 0; i < a.size; ++i) if (a[i] != b[i]) return true;
+	return false;
+}
+
 }
