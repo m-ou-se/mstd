@@ -90,8 +90,8 @@ public:
 	T const &  operator * () const &  { return value_; }
 	T       && operator * ()       && { return std::move(value_); }
 
-	T       * operator -> ()       { return value_; }
-	T const * operator -> () const { return value_; }
+	T       * operator -> ()       { return &value_; }
+	T const * operator -> () const { return &value_; }
 
 };
 
