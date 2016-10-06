@@ -36,11 +36,11 @@ struct range {
 	constexpr void remove_prefix(std::size_t n) { begin_ += n; }
 	constexpr void remove_suffix(std::size_t n) { size_ -= n; }
 
-	constexpr std::size_t size() volatile const { return size_; }
+	constexpr std::size_t size() const { return size_; }
 
 	constexpr T * data() const { return begin_; }
 
-	constexpr bool empty() volatile const { return size_ == 0; }
+	constexpr bool empty() const { return size_ == 0; }
 
 	constexpr range subrange(std::size_t pos, std::size_t count = std::size_t(-1)) {
 		return range(begin_ + pos, size_ - pos < count ? size_ - pos : count);
