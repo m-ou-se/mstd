@@ -53,6 +53,7 @@ public:
 			new (&value_) T(std::move(other.value_));
 		}
 		error_ = other.error_;
+		return *this;
 	}
 
 	error_or & operator = (error_or const & other) {
@@ -64,6 +65,7 @@ public:
 			new (&value_) T(other.value_);
 		}
 		error_ = other.error_;
+		return *this;
 	}
 
 	// Destructor.
