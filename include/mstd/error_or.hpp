@@ -168,6 +168,16 @@ public:
 	T const &  value() const &  { return value_.value_; }
 	T       && value()       && { return static_cast<T &&>(value_.value_); }
 
+	template<typename U>
+	T value_or(U && default_value) const & {
+		return ok() ? value_.value_ : static_cast<T>(std::forward<U>(default_value));
+	}
+
+	template<typename U>
+	T value_or(U && default_value) && {
+		return ok() ? static_cast<T &&>(value_.value_) : static_cast<T>(std::forward<U>(default_value));
+	}
+
 	// Implicit accessors.
 
 	explicit operator bool() const { return ok(); }
