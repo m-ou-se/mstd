@@ -12,17 +12,22 @@ namespace mstd {
 // T can be anything that's movable, or void.
 //
 // By default, std::error_code is used for errors, but an anternative error
-// type can be given as the second template argument:
-//   error_or<T, Error>
+// type can be given as the second template argument: error_or<T, Error>
 //
 // Error must be able to represent 'no error', and must value-initialize to a
-// 'no error' value. It must also be explicitly convertible to bool: With Error
-// err; bool(err) should evaluate to false if it is set to a 'no error' value,
-// or true otherwise.
+// 'no error' value.
 //
-// This means enums, enum classes, integers, and std::error_code are all usable
-// as Error type. Enums and enum classes do not explicitly need a 0 value, but
-// can't use 0 for an error value.
+// Normally, Error must also be explicitly convertible to bool: bool(err)
+// should evaluate to false if and only if err is set to a 'no error' value.
+// However, a different method to check if an error contains a 'no error' value
+// can be given with a third template argument: error_or<T, Error, ErrorIsOk>.
+// In that case, ErrorIsOk()(e) must evaluate to true if and only if e is a 'no
+// error' value.
+//
+// This means enums, enum classes, integers, std::error_code and even
+// std::unique_ptr are all usable as Error type with the default ErrorIsOk.
+// (Enums and enum classes do not explicitly need a name for the 0 value, but
+// can't use 0 for anything other than 'no error'.)
 //
 // Example:
 //   enum class ErrorCode {
@@ -47,7 +52,23 @@ namespace mstd {
 //       return result.error();
 //     }
 //   }
-template<typename T, typename Error = std::error_code>
+
+namespace detail_ {
+
+struct error_is_ok {
+	template<typename E>
+	bool operator () (E const & e) {
+		return !bool(e);
+	}
+};
+
+}
+
+template<
+	typename T,
+	typename Error = std::error_code,
+	typename ErrorIsOk = detail_::error_is_ok
+>
 class error_or {
 
 	Error error_;
@@ -118,7 +139,7 @@ public:
 
 	// Explicit accessors.
 
-	bool ok() const { return !bool(error_); }
+	bool ok() const { return ErrorIsOk()(error_); }
 
 	Error       &  error()       &  { return error_; }
 	Error const &  error() const &  { return error_; }
@@ -141,8 +162,8 @@ public:
 
 };
 
-template<typename Error>
-class error_or<void, Error> {
+template<typename Error, typename ErrorIsOk>
+class error_or<void, Error, ErrorIsOk> {
 
 	Error error_;
 
@@ -151,7 +172,7 @@ public:
 
 	error_or() : error_() {}
 
-	bool ok() const { return !bool(error_); }
+	bool ok() const { return ErrorIsOk()(error_); }
 
 	explicit operator bool() const { return ok(); }
 
