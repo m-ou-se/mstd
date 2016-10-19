@@ -3,13 +3,14 @@
 #include <new>
 #include <stdexcept>
 #include <system_error>
+#include <type_traits>
 #include <utility>
 
 namespace mstd {
 
 // error_or<T> represents either a T or an error.
 //
-// T can be anything that's movable, or void.
+// T can be anything that's movable, a reference, or void.
 //
 // By default, std::error_code is used for errors, but an anternative error
 // type can be given as the second template argument: error_or<T, Error>
@@ -72,7 +73,9 @@ template<
 class error_or {
 
 	Error error_;
-	union { T value_; };
+
+	struct Value { T value_; };
+	union { Value value_; };
 
 public:
 
@@ -84,36 +87,35 @@ public:
 	}
 
 	error_or(T value) : error_() {
-		new (&value_) T(std::move(value));
+		new (&value_) Value{static_cast<T &&>(value)};
 	}
 
 	// Move and copy constructors.
 
 	error_or(error_or && other) noexcept(
 		noexcept(Error(std::move(other.error_))) &&
-		noexcept(T(std::move(other.value_)))
+		noexcept(Value{static_cast<T &&>(other.value_.value_)})
 	) : error_(std::move(other.error_)) {
-		if (ok()) new (&value_) T(std::move(other.value_));
+		if (ok()) new (&value_) Value{static_cast<T &&>(other.value_.value_)};
 	}
 
 	error_or(error_or const & other) : error_(other.error_) {
-		if (ok()) new (&value_) T(other.value_);
+		if (ok()) new (&value_) Value{other.value_};
 	}
 
 	// Move and copy assignment.
 
 	error_or & operator = (error_or && other) noexcept(
-		noexcept(value_ = std::move(other.value_)) &&
-		noexcept(value_.~T()) &&
-		noexcept(T(std::move(other.value_))) &&
+		noexcept(value_.value_ = std::move(other.value_.value_)) &&
+		noexcept(Value{static_cast<T &&>(other.value_.value_)}) &&
 		noexcept(error_ = std::move(other.error_))
 	) {
 		if (ok() && other.ok()) {
-			value_ = std::move(other.value_);
+			value_.value_ = std::move(other.value_.value_);
 		} else if (ok()) {
-			value_.~T();
+			value_.~Value();
 		} else if (other.ok()) {
-			new (&value_) T(std::move(other.value_));
+			new (&value_) Value{static_cast<T &&>(other.value_.value_)};
 		}
 		error_ = std::move(other.error_);
 		return *this;
@@ -121,11 +123,11 @@ public:
 
 	error_or & operator = (error_or const & other) {
 		if (ok() && other.ok()) {
-			value_ = other.value_;
+			value_.value_ = other.value_.value_;
 		} else if (ok()) {
-			value_.~T();
+			value_.~Value();
 		} else if (other.ok()) {
-			new (&value_) T(other.value_);
+			new (&value_) Value{other.value_.value_};
 		}
 		error_ = other.error_;
 		return *this;
@@ -134,7 +136,7 @@ public:
 	// Destructor.
 
 	~error_or() {
-		if (ok()) value_.~T();
+		if (ok()) value_.~Value();
 	}
 
 	// Explicit accessors.
@@ -145,20 +147,20 @@ public:
 	Error const &  error() const &  { return error_; }
 	Error       && error()       && { return std::move(error_); }
 
-	T       &  value()       &  { return value_; }
-	T const &  value() const &  { return value_; }
-	T       && value()       && { return std::move(value_); }
+	T       &  value()       &  { return value_.value_; }
+	T const &  value() const &  { return value_.value_; }
+	T       && value()       && { return static_cast<T &&>(value_.value_); }
 
 	// Implicit accessors.
 
 	explicit operator bool() const { return ok(); }
 
-	T       &  operator * ()       &  { return value_; }
-	T const &  operator * () const &  { return value_; }
-	T       && operator * ()       && { return std::move(value_); }
+	T       &  operator * ()       &  { return value_.value_; }
+	T const &  operator * () const &  { return value_.value_; }
+	T       && operator * ()       && { return static_cast<T &&>(value_.value_); }
 
-	T       * operator -> ()       { return &value_; }
-	T const * operator -> () const { return &value_; }
+	typename std::remove_reference<T>::type       * operator -> ()       { return &value_.value_; }
+	typename std::remove_reference<T>::type const * operator -> () const { return &value_.value_; }
 
 };
 
