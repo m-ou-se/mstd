@@ -12,6 +12,23 @@ namespace mstd {
 //
 // T can be anything that's movable, a reference, or void.
 //
+// Example:
+//   mstd::error_or<int> test() {
+//     if (!foo()) {
+//       return make_error_code(std::errc::io_error);
+//     } else {
+//       return 7;
+//     }
+//   }
+//
+//   void f() {
+//     if (mstd::error_or<int> result = test()) {
+//       std::cout << result.value();
+//     } else {
+//       std::cerr << "Error: " << result.error();
+//     }
+//   }
+//
 // By default, std::error_code is used for errors, but an anternative error
 // type can be given as the second template argument: error_or<T, Error>
 //
@@ -39,8 +56,8 @@ namespace mstd {
 //
 // error_or<T, Error> can be implicitly constructed from either a T or an
 // Error. The only restriction is that the Error must not be a 'no error'
-// value, since in that case, there should've been a value (a T). The
-// specialization for T=void doesn't have this restriction.
+// value, since in that case, there should've been a value. The specialization
+// for T=void doesn't have this restriction.
 //
 // Example:
 //   mstd::error_or<std::string, ErrorCode> get_something() {
