@@ -57,7 +57,7 @@ public:
 
 	// Implicit conversions from both Error and T.
 
-	error_or(Error e) : error_(e) {
+	error_or(Error e) : error_(std::move(e)) {
 		// An error_or<T> without an error needs a value.
 		if (ok()) throw std::invalid_argument("error_or(Error)");
 	}
@@ -69,8 +69,9 @@ public:
 	// Move and copy constructors.
 
 	error_or(error_or && other) noexcept(
+		noexcept(Error(std::move(other.error_))) &&
 		noexcept(T(std::move(other.value_)))
-	) : error_(other.error_) {
+	) : error_(std::move(other.error_)) {
 		if (ok()) new (&value_) T(std::move(other.value_));
 	}
 
@@ -83,7 +84,8 @@ public:
 	error_or & operator = (error_or && other) noexcept(
 		noexcept(value_ = std::move(other.value_)) &&
 		noexcept(value_.~T()) &&
-		noexcept(T(std::move(other.value_)))
+		noexcept(T(std::move(other.value_))) &&
+		noexcept(error_ = std::move(other.error_))
 	) {
 		if (ok() && other.ok()) {
 			value_ = std::move(other.value_);
@@ -92,7 +94,7 @@ public:
 		} else if (other.ok()) {
 			new (&value_) T(std::move(other.value_));
 		}
-		error_ = other.error_;
+		error_ = std::move(other.error_);
 		return *this;
 	}
 
@@ -118,7 +120,9 @@ public:
 
 	bool ok() const { return !bool(error_); }
 
-	Error error() const { return error_; }
+	Error       &  error()       &  { return error_; }
+	Error const &  error() const &  { return error_; }
+	Error       && error()       && { return std::move(error_); }
 
 	T       &  value()       &  { return value_; }
 	T const &  value() const &  { return value_; }
@@ -143,7 +147,7 @@ class error_or<void, Error> {
 	Error error_;
 
 public:
-	error_or(Error e) : error_(e) {}
+	error_or(Error e) : error_(std::move(e)) {}
 
 	error_or() : error_() {}
 
@@ -151,7 +155,9 @@ public:
 
 	explicit operator bool() const { return ok(); }
 
-	Error error() const { return error_; }
+	Error       &  error()       &  { return error_; }
+	Error const &  error() const &  { return error_; }
+	Error       && error()       && { return std::move(error_); }
 
 };
 
