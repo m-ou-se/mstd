@@ -112,7 +112,7 @@ public:
 
 	// Destructor.
 
-	~error_or() noexcept(noexcept(value_.~T())) {
+	~error_or() {
 		if (ok()) value_.~T();
 	}
 
