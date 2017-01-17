@@ -289,9 +289,10 @@ refcount_ptr<T> make_refcount(Args &&... args) {
 }
 
 template<typename T>
-std::unique_ptr<T> take_or_copy(refcount_ptr<T const> && p) {
+std::unique_ptr<typename refcount_ptr<T>::refcounted_type>
+take_or_copy(refcount_ptr<T> & p) {
 	auto copy = p.release_unique();
-	if (!copy) copy = std::make_unique<T>(*p);
+	if (!copy) copy = std::make_unique<typename refcount_ptr<T>::refcounted_type>(*p);
 	return std::move(copy);
 }
 
