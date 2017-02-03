@@ -33,7 +33,7 @@ struct range {
 	constexpr T * begin() const { return begin_; }
 	constexpr T *   end() const { return begin_ + size_; }
 
-	constexpr void remove_prefix(std::size_t n) { begin_ += n; }
+	constexpr void remove_prefix(std::size_t n) { begin_ += n; size_ -= n; }
 	constexpr void remove_suffix(std::size_t n) { size_ -= n; }
 
 	constexpr std::size_t size() const { return size_; }
