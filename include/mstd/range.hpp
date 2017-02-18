@@ -1,14 +1,36 @@
 #pragma once
 
 #include <cstddef>
+#include <initializer_list>
 #include <type_traits>
 
 namespace mstd {
+
+namespace range_detail {
+
+template<typename T>
+auto data(T & v) -> decltype(v.data()) { return v.data(); }
+
+template<typename T>
+T const * data(std::initializer_list<T> v) { return v.begin(); }
+
+template<typename T, size_t N>
+T * data(T (&x)[N]) { return x; }
+
+template<typename T>
+auto size(T & v) -> decltype(v.size()) { return v.size(); }
+
+template<typename T, size_t N>
+size_t size(T (&x)[N]) { return N; }
+
+}
 
 template<typename T>
 struct range {
 
 	constexpr range() : begin_(nullptr), size_(0) {}
+
+	constexpr range(decltype(nullptr)) : begin_(nullptr), size_(0) {}
 
 	constexpr range(T * b, std::size_t s) : begin_(b), size_(s) {}
 
@@ -16,17 +38,14 @@ struct range {
 
 	constexpr range(T & x) : begin_(&x), size_(1) {}
 
-	template<std::size_t n>
-	constexpr range(T (&x)[n]) : begin_(&x[0]), size_(n) {}
-
 	template<
 		typename X,
 		typename = std::enable_if_t<
-			std::is_convertible<decltype(std::declval<X>().data()), T *>::value &&
-			std::is_convertible<decltype(std::declval<X>().size()), std::size_t>::value
+			std::is_convertible<decltype(range_detail::data(std::declval<X &>())), T *>::value &&
+			std::is_convertible<decltype(range_detail::size(std::declval<X &>())), std::size_t>::value
 		>
 	>
-	constexpr range(X & x) : begin_(x.data()), size_(x.size()) {}
+	constexpr range(X & x) : begin_(range_detail::data(x)), size_(range_detail::size(x)) {}
 
 	constexpr T & operator [] (std::size_t i) const { return begin_[i]; }
 
