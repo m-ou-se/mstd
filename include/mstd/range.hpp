@@ -21,7 +21,7 @@ template<typename T>
 auto size(T & v) -> decltype(v.size()) { return v.size(); }
 
 template<typename T, size_t N>
-size_t size(T (&x)[N]) { return N; }
+size_t size(T (&)[N]) { return N; }
 
 }
 
