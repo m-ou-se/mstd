@@ -1,5 +1,5 @@
 #pragma once
-#if __cplusplus >= 201402L && __has_include(<experimental/string_view>)
+#if __cplusplus <= 201402L && __has_include(<experimental/string_view>)
 #include <experimental/string_view>
 namespace mstd {
 using std::experimental::string_view;
