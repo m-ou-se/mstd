@@ -128,8 +128,11 @@ public:
 
 	// Implicit conversions from both Error and T.
 
+	template<bool B=1, typename=std::enable_if_t<B && !std::is_same<T, Error>{}>>
 	error_or(Error e) : error_or{invalid, std::move(e)} {}
-	error_or(T value) : error_or{valid,   static_cast<T &&>(value)} {}
+
+	template<char B=1, typename=std::enable_if_t<B && !std::is_same<T, Error>{}>>
+	error_or(T value) : error_or{valid, static_cast<T &&>(value)} {}
 
 	// Move and copy constructors.
 
