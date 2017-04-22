@@ -70,6 +70,20 @@ namespace mstd {
 //       return result.error();
 //     }
 //   }
+//
+// error_or<T, Error> also supports in-place construction using tagged
+// constructors. The first argument for these constructors is either mstd::valid
+// or mstd::invalid. The remaining arguments are directly passed to the
+// constructor of T or Error. This also allows unambigious constuction from
+// values that are implicitly convertible to both T and Error.
+//
+// Example:
+//   mstd::error_or<int, int> get_something() {
+//     if (foobar) {
+//       return {mstd::invalid, 7};
+//     }
+//     return {mstd::valid, 3};
+//   }
 
 namespace detail_ {
 
@@ -81,6 +95,9 @@ struct error_is_ok {
 };
 
 }
+
+constexpr struct valid_t{} valid;
+constexpr struct invalid_t{} invalid;
 
 template<
 	typename T,
@@ -96,16 +113,23 @@ class error_or {
 
 public:
 
-	// Implicit conversions from both Error and T.
+	// Explicit in-place construction for both Error and T.
 
-	error_or(Error e) : error_(std::move(e)) {
+	template<typename... Args>
+	error_or(invalid_t, Args && ...args) : error_(std::forward<Args>(args)...) {
 		// An error_or<T> without an error needs a value.
 		if (ok()) throw std::invalid_argument("error_or(Error)");
 	}
 
-	error_or(T value) : error_() {
-		new (&value_) Value{static_cast<T &&>(value)};
+	template<typename... Args>
+	error_or(valid_t, Args && ...args) : error_() {
+		new (&value_) Value{std::forward<Args>(args)...};
 	}
+
+	// Implicit conversions from both Error and T.
+
+	error_or(Error e) : error_or{invalid, std::move(e)} {}
+	error_or(T value) : error_or{valid,   static_cast<T &&>(value)} {}
 
 	// Move and copy constructors.
 
