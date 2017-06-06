@@ -1,5 +1,5 @@
 #pragma once
-#if __cplusplus <= 201402L && __has_include(<experimental/optional>)
+#if (__cplusplus <= 201402L || !__has_include(<optional>)) && __has_include(<experimental/optional>)
 #include <experimental/optional>
 namespace mstd {
 using std::experimental::optional;
