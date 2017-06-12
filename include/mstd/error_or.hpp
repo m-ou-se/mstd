@@ -237,25 +237,25 @@ inline bool operator != (Error const & a, error_or<T, Error> const & b) {
 
 template<typename T, typename Error>
 inline bool operator == (error_or<T, Error> const & a, T const & b) {
-	if (a.error()) return false;
+	if (!a.ok()) return false;
 	return a.value() == b;
 }
 
 template<typename T, typename Error>
 inline bool operator != (error_or<T, Error> const & a, T const & b) {
-	if (a.error()) return true;
+	if (!a.ok()) return true;
 	return a.value() != b;
 }
 
 template<typename T, typename Error>
 inline bool operator == (T const & a, error_or<T, Error> const & b) {
-	if (b.error()) return false;
+	if (!b.ok()) return false;
 	return a == b.value();
 }
 
 template<typename T, typename Error>
 inline bool operator != (T const & a, error_or<T, Error> const & b) {
-	if (b.error()) return true;
+	if (!b.ok()) return true;
 	return a != b.value();
 }
 
@@ -263,25 +263,25 @@ inline bool operator != (T const & a, error_or<T, Error> const & b) {
 
 template<typename T1, typename E1, typename T2, typename E2>
 inline bool operator == (error_or<T1, E1> const & a, error_or<T2, E2> const & b) {
-	if (a.error() != b.error()) return false;
-	if (a.error()) return true;
-	return a.value() == b.value();
+	if (a.ok() && b.ok()) return a.value() == b.value();
+	return a.error() == b.error();
 }
 
 template<typename T1, typename E1, typename T2, typename E2>
 inline bool operator != (error_or<T1, E1> const & a, error_or<T2, E2> const & b) {
-	if (a.error() != b.error()) return true;
-	if (a.error()) return false;
-	return a.value() != b.value();
+	if (a.ok() && b.ok()) return a.value() != b.value();
+	return a.error() != b.error();
 }
 
 template<typename E1, typename E2>
 inline bool operator == (error_or<void, E1> const & a, error_or<void, E2> const & b) {
+	if (a.ok() && b.ok()) return true;
 	return a.error() == b.error();
 }
 
 template<typename E1, typename E2>
 inline bool operator != (error_or<void, E1> const & a, error_or<void, E2> const & b) {
+	if (a.ok() && b.ok()) return false;
 	return a.error() != b.error();
 }
 
